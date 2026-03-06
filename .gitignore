@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+!**/src/test/**/target/
+
+### Configuration file
+!**/src/main/resources/application.properties
