@@ -80,7 +80,7 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request) throws Exception {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new Exception("Email already exists");
+            return ResponseEntity.status(409).body(Map.of("error", "Email already exists"));
         }
 
         User user = new User();

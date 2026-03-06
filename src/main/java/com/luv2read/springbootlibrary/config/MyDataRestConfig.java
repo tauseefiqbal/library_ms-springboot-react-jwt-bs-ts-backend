@@ -1,5 +1,6 @@
 package com.luv2read.springbootlibrary.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.rest.core.config.RepositoryRestConfiguration;
 import org.springframework.data.rest.webmvc.config.RepositoryRestConfigurer;
@@ -13,7 +14,8 @@ import com.luv2read.springbootlibrary.entity.Review;
 @Configuration
 public class MyDataRestConfig implements RepositoryRestConfigurer {
 
-    private final String theAllowedOrigins = "http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175";
+    @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:5174,http://localhost:5175}")
+    private String theAllowedOrigins;
 
     @Override
     public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config,
@@ -33,8 +35,9 @@ public class MyDataRestConfig implements RepositoryRestConfigurer {
         disableHttpMethods(Message.class, config, theUnsupportedActions);
 
         /* Configure CORS Mapping */
+        String[] origins = theAllowedOrigins.split(",");
         cors.addMapping(config.getBasePath() + "/**")
-                .allowedOrigins(theAllowedOrigins);
+                .allowedOrigins(origins);
     }
 
     private void disableHttpMethods(Class<?> theClass,
