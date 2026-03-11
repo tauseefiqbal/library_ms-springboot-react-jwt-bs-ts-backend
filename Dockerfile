@@ -1,0 +1,27 @@
+# ---- BUILD STAGE ----
+FROM maven:3.9.9-eclipse-temurin-21 AS builder
+
+WORKDIR /app
+
+# Copy pom first for dependency caching
+COPY pom.xml .
+
+# Download dependencies
+RUN mvn -B -q -e -DskipTests dependency:go-offline
+
+# Copy source
+COPY src ./src
+
+# Build jar
+RUN mvn clean package -DskipTests
+
+# ---- RUN STAGE ----
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+COPY --from=builder /app/target/*.jar app.jar
+
+EXPOSE 8080
+
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
