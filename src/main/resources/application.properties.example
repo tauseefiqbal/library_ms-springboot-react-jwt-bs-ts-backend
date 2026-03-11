@@ -45,3 +45,9 @@ cors.allowed-origins=http://localhost:3000,http://localhost:5173,http://localhos
 
 cors.allowed-origins=https://library-frontend.vercel.app
 
+# JWT Configuration
+# IMPORTANT: Change this secret in production! Must be at least 256 bits (32 characters)
+jwt.secret-key=${JWT_SECRET_KEY:MySecretKeyForJWTTokenGenerationAndValidation12345678}
+
+# Virtual Threads (Java 21 feature for better concurrency)
+spring.threads.virtual.enabled=true

@@ -21,17 +21,17 @@ public class ReviewService {
     }
 
     public void postReview(String userEmail, ReviewRequest reviewRequest) throws Exception {
-        Review validateReview = reviewRepository.findByUserEmailAndBookId(userEmail, reviewRequest.getBookId());
+        Review validateReview = reviewRepository.findByUserEmailAndBookId(userEmail, reviewRequest.bookId());
         if (validateReview != null) {
             throw new Exception("Review already created");
         }
 
         Review review = new Review();
-        review.setBookId(reviewRequest.getBookId());
-        review.setRating(reviewRequest.getRating());
+        review.setBookId(reviewRequest.bookId());
+        review.setRating(reviewRequest.rating());
         review.setUserEmail(userEmail);
-        if (reviewRequest.getReviewDescription().isPresent()) {
-            review.setReviewDescription(reviewRequest.getReviewDescription().map(
+        if (reviewRequest.reviewDescription().isPresent()) {
+            review.setReviewDescription(reviewRequest.reviewDescription().map(
                     Object::toString
             ).orElse(null));
         }

@@ -7,18 +7,27 @@ import java.util.function.Function;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 
 @Component
 public class JwtUtil {
 
-    private final SecretKey SECRET_KEY = Keys.hmacShaKeyFor(
-            "MySecretKeyForJWTTokenGenerationAndValidation12345678".getBytes());
+    @Value("${jwt.secret-key}")
+    private String secretKeyString;
+    
+    private SecretKey SECRET_KEY;
+    
+    @PostConstruct
+    private void init() {
+        this.SECRET_KEY = Keys.hmacShaKeyFor(secretKeyString.getBytes());
+    }
     
     // 10 hours validity
     private final long JWT_TOKEN_VALIDITY = 10 * 60 * 60 * 1000;

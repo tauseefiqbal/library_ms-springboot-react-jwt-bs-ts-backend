@@ -47,23 +47,23 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthenticationRequest request) throws Exception {
         System.out.println("=== LOGIN REQUEST RECEIVED ===");
-        System.out.println("Email: " + request.getEmail());
-        System.out.println("Password length: " + (request.getPassword() != null ? request.getPassword().length() : 0));
+        System.out.println("Email: " + request.email());
+        System.out.println("Password length: " + (request.password() != null ? request.password().length() : 0));
         
         try {
             authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+                    new UsernamePasswordAuthenticationToken(request.email(), request.password())
             );
-            System.out.println("Authentication successful for: " + request.getEmail());
+            System.out.println("Authentication successful for: " + request.email());
         } catch (BadCredentialsException e) {
-            System.out.println("Authentication failed for: " + request.getEmail());
+            System.out.println("Authentication failed for: " + request.email());
             throw new Exception("Incorrect email or password", e);
         }
 
-        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(request.email());
         final String jwt = jwtUtil.generateToken(userDetails);
         
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new Exception("User not found"));
 
         return ResponseEntity.ok(new AuthenticationResponse(
@@ -77,14 +77,22 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegistrationRequest request) throws Exception {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail(request.email())) {
             return ResponseEntity.status(409).body(Map.of("error", "Email already exists"));
+        }
+        
+        // Password validation - BCrypt max length is 72 characters
+        if (request.password() == null || request.password().length() < 6) {
+            return ResponseEntity.status(400).body(Map.of("error", "Password must be at least 6 characters long"));
+        }
+        if (request.password().length() > 72) {
+            return ResponseEntity.status(400).body(Map.of("error", "Password must not exceed 72 characters"));
         }
 
         User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setName(request.getName());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setName(request.name());
         user.setIsAdmin(false); // New users are not admins by default
 
         userRepository.save(user);

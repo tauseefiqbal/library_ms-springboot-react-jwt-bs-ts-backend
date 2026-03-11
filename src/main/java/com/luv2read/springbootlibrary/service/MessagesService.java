@@ -26,13 +26,13 @@ public class MessagesService {
     }
 
     public void putMessage(AdminQuestionRequest adminQuestionRequest, String userEmail) throws Exception {
-        Optional<Message> message = messageRepository.findById(adminQuestionRequest.getId());
+        Optional<Message> message = messageRepository.findById(adminQuestionRequest.id());
         if (!message.isPresent()) {
             throw new Exception("Message not found");
         }
 
         message.get().setAdminEmail(userEmail);
-        message.get().setResponse(adminQuestionRequest.getResponse());
+        message.get().setResponse(adminQuestionRequest.response());
         message.get().setClosed(true);
         messageRepository.save(message.get());
     }

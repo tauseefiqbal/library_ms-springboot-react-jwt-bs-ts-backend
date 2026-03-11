@@ -1,12 +1,10 @@
 package com.luv2read.springbootlibrary.service;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,23 +82,18 @@ public class BookService {
 
         List<Book> books = bookRepository.findBooksByBookIds(bookIdList);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
         for (Book book : books) {
             Optional<Checkout> checkout = checkoutList.stream()
                     .filter(x -> x.getBookId().equals(book.getId())).findFirst();
 
             if (checkout.isPresent()) {
 
-                Date d1 = sdf.parse(checkout.get().getReturnDate());
-                Date d2 = sdf.parse(LocalDate.now().toString());
+                LocalDate returnDate = LocalDate.parse(checkout.get().getReturnDate());
+                LocalDate today = LocalDate.now();
 
-                TimeUnit time = TimeUnit.DAYS;
+                long daysLeft = ChronoUnit.DAYS.between(today, returnDate);
 
-                long difference_In_Time = time.convert(d1.getTime() - d2.getTime(),
-                        TimeUnit.MILLISECONDS);
-
-                shelfCurrentLoansResponses.add(new ShelfCurrentLoansResponse(book, (int) difference_In_Time));
+                shelfCurrentLoansResponses.add(new ShelfCurrentLoansResponse(book, (int) daysLeft));
             }
         }
         return shelfCurrentLoansResponses;
@@ -142,12 +135,10 @@ public class BookService {
             throw new Exception("Book does not exist or not checked out by user");
         }
 
-        SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd");
+        LocalDate returnDate = LocalDate.parse(validateCheckout.getReturnDate());
+        LocalDate today = LocalDate.now();
 
-        Date d1 = sdFormat.parse(validateCheckout.getReturnDate());
-        Date d2 = sdFormat.parse(LocalDate.now().toString());
-
-        if (d1.compareTo(d2) > 0 || d1.compareTo(d2) == 0) {
+        if (returnDate.isAfter(today) || returnDate.isEqual(today)) {
             validateCheckout.setReturnDate(LocalDate.now().plusDays(7).toString());
             checkoutRepository.save(validateCheckout);
         }

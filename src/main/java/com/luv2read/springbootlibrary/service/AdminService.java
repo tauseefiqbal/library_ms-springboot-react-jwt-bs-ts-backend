@@ -57,13 +57,13 @@ public class AdminService {
 
     public void postBook(AddBookRequest addBookRequest) {
         Book book = new Book();
-        book.setTitle(addBookRequest.getTitle());
-        book.setAuthor(addBookRequest.getAuthor());
-        book.setDescription(addBookRequest.getDescription());
-        book.setCopies(addBookRequest.getCopies());
-        book.setCopiesAvailable(addBookRequest.getCopies());
-        book.setCategory(addBookRequest.getCategory());
-        book.setImg(addBookRequest.getImg());
+        book.setTitle(addBookRequest.title());
+        book.setAuthor(addBookRequest.author());
+        book.setDescription(addBookRequest.description());
+        book.setCopies(addBookRequest.copies());
+        book.setCopiesAvailable(addBookRequest.copies());
+        book.setCategory(addBookRequest.category());
+        book.setImg(addBookRequest.img());
         bookRepository.save(book);
     }
 
