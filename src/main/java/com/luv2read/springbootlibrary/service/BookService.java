@@ -39,9 +39,9 @@ public class BookService {
 
         Optional<Book> book = bookRepository.findById(bookId);
 
-        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
+        List<Checkout> existingCheckouts = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
 
-        if (!book.isPresent() || validateCheckout != null || book.get().getCopiesAvailable() <= 0) {
+        if (!book.isPresent() || !existingCheckouts.isEmpty() || book.get().getCopiesAvailable() <= 0) {
             throw new Exception("Book doesn't exist or already checked out by user");
         }
 
@@ -61,8 +61,8 @@ public class BookService {
     }
 
     public Boolean checkoutBookByUser(String userEmail, Long bookId) {
-        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
-        return validateCheckout != null;
+        List<Checkout> checkouts = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
+        return !checkouts.isEmpty();
     }
 
     public int currentLoansCount(String userEmail) {
@@ -103,16 +103,21 @@ public class BookService {
 
         Optional<Book> book = bookRepository.findById(bookId);
 
-        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
+        List<Checkout> checkouts = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
 
-        if (!book.isPresent() || validateCheckout == null) {
+        if (!book.isPresent() || checkouts.isEmpty()) {
             throw new Exception("Book does not exist or not checked out by user");
         }
+
+        Checkout validateCheckout = checkouts.get(0);
 
         book.get().setCopiesAvailable(book.get().getCopiesAvailable() + 1);
 
         bookRepository.save(book.get());
-        checkoutRepository.deleteById(validateCheckout.getId());
+        // Delete all duplicate checkout records for this user/book
+        for (Checkout c : checkouts) {
+            checkoutRepository.deleteById(c.getId());
+        }
 
         History history = new History(
                 userEmail,
@@ -129,11 +134,13 @@ public class BookService {
 
     public void renewLoan(String userEmail, Long bookId) throws Exception {
 
-        Checkout validateCheckout = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
+        List<Checkout> checkouts = checkoutRepository.findByUserEmailAndBookId(userEmail, bookId);
 
-        if (validateCheckout == null) {
+        if (checkouts.isEmpty()) {
             throw new Exception("Book does not exist or not checked out by user");
         }
+
+        Checkout validateCheckout = checkouts.get(0);
 
         LocalDate returnDate = LocalDate.parse(validateCheckout.getReturnDate());
         LocalDate today = LocalDate.now();
